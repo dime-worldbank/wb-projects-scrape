@@ -1,5 +1,8 @@
 # Libraries
 import objects
+import os
+import csv
+import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import \
@@ -20,12 +23,33 @@ def go_to_url(driver, url):
     return True
 
 # Downloads
-def get_txt_url(driver):
+def retrieve_txt_url(driver, n_tries=objects.ATTEMPTS):
 
-    text_link = find_by_visible_text(driver, objects.TEXT_LINK)[0]
-    url = text_link.get_attribute('href')
+    attempts = 0
+    text_link = find_by_visible_text(driver, objects.TEXT_LINK)
 
-    return url
+    if len(text_link) == 0:
+        return 'Document no available'
+    else:
+        url = text_link[0].get_attribute('href')
+        return url
+
+def get_txt_url(driver, url):
+
+    go_to_url(driver, url)
+    txt_url = retrieve_txt_url(driver)
+
+    return txt_url
+
+def get_txt_urls(urls_dois, file):
+
+    driver = get_driver()
+
+    for url, doi in urls_dois:
+        txt_url = get_txt_url(driver, url)
+        add_rows_to_csv(objects.TXT_URL_FILE, ['doi', 'url'], [[doi, txt_url]])
+
+    return True
 
 # HTML navigation
 def find_by_visible_text(driver, text, n_tries=objects.ATTEMPTS):
@@ -44,3 +68,18 @@ def find_by_visible_text(driver, text, n_tries=objects.ATTEMPTS):
         print('\tCould not find the element with text: '+text)
 
     return False
+
+# Data in files
+def add_rows_to_csv(file, columns, rows):
+
+    if not os.path.exists(file):
+        with open(file, 'w', newline='', encoding=objects.ENCODING) as f:
+            print('Created file')
+            wr = csv.writer(f, dialect='excel')
+            wr.writerows([columns])
+
+    with open(file, 'a', newline='', encoding=objects.ENCODING) as f:
+        wr = csv.writer(f, dialect='excel')
+        wr.writerows(rows)
+
+    return True

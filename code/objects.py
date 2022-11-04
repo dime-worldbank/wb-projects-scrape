@@ -5,6 +5,7 @@ ENCODING = 'utf-8'
 CHROMEDRIVER_PATH = 'C:/WBG/chromedriver/chromedriver.exe'
 TEXT_LINK = 'TXT*'
 ATTEMPTS = 4
+TXT_URL_FILE = '../data/intermediate/PAD_txt_urls.csv'
 
 # URL list
 DOC_DIR = '../data/raw'
