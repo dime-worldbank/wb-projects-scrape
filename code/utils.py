@@ -3,6 +3,7 @@ import objects
 import os
 import csv
 import time
+import requests
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import \
@@ -29,7 +30,7 @@ def retrieve_txt_url(driver, n_tries=objects.ATTEMPTS):
     text_link = find_by_visible_text(driver, objects.TEXT_LINK)
 
     if len(text_link) == 0:
-        return 'Document no available'
+        return objects.DOC_NOT_AVAILABLE_MSG
     else:
         url = text_link[0].get_attribute('href')
         return url
@@ -50,6 +51,19 @@ def get_txt_urls(urls_dois, file):
         add_rows_to_csv(objects.TXT_URL_FILE, ['doi', 'url'], [[doi, txt_url]])
 
     return True
+
+def get_txt_doc(url_txt, doi):
+
+    response = requests.get(url_txt)
+
+    if response.status_code == 200:
+        text = response.text
+        with open(objects.TXT_DOC_LOCATION+str(doi)+'.txt', 'w', encoding=objects.ENCODING) as txt_file:
+            txt_file.write(text)
+        return True
+
+    else:
+        return False
 
 # HTML navigation
 def find_by_visible_text(driver, text, n_tries=objects.ATTEMPTS):
