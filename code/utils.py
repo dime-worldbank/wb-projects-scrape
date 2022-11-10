@@ -7,7 +7,9 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import \
-    NoSuchElementException
+    NoSuchElementException, \
+    StaleElementReferenceException, \
+    ElementNotInteractableException
 
 # URL Navigation
 def get_driver():
@@ -24,9 +26,8 @@ def go_to_url(driver, url):
     return True
 
 # Downloads
-def retrieve_txt_url(driver, n_tries=objects.ATTEMPTS):
+def retrieve_txt_url(driver):
 
-    attempts = 0
     text_link = find_by_visible_text(driver, objects.TEXT_LINK)
 
     if len(text_link) == 0:
@@ -35,20 +36,64 @@ def retrieve_txt_url(driver, n_tries=objects.ATTEMPTS):
         url = text_link[0].get_attribute('href')
         return url
 
-def get_txt_url(driver, url):
+def retrieve_project(driver, n_tries=objects.ATTEMPTS):
 
-    go_to_url(driver, url)
-    txt_url = retrieve_txt_url(driver)
+    see_more = find_by_visible_text(driver, objects.SEE_MORE_TEXT)[-1]
+    see_more.location_once_scrolled_into_view
+    try:
+        see_more.click()
+    except ElementNotInteractableException:
+        return objects.PROJECT_INFO_NOT_AVAILABLE_MSG
 
-    return txt_url
+    project_label = find_by_visible_text(driver, objects.PROJECT_LABEL)
+    if len(project_label) == 0:
+        return objects.PROJECT_INFO_NOT_AVAILABLE_MSG
+    else:
+        project_name = project_label[0].find_element_by_xpath('./following-sibling::p')
 
-def get_txt_urls(urls_dois, file):
+    attempts = 0
+    while attempts < n_tries:
+
+        try:
+            project = project_name.text
+            if project != '':
+                return project
+            else:
+                print('\tEmpty project name, trying again...')
+                attempts += 1
+                time.sleep(1)
+        except StaleElementReferenceException:
+            print('\tStale element in project name, trying again')
+            attempts += 1
+            time.sleep(1)
+
+    print('\tCould not get project name')
+    return False
+
+def get_data(driver, url, n_tries=objects.ATTEMPTS):
+
+    attempts = 0
+    while attempts < n_tries:
+
+        go_to_url(driver, url)
+        txt_url = retrieve_txt_url(driver)
+        project = retrieve_project(driver)
+
+        if project is False:
+            attempts += 1
+            print('\tLoading URL again...')
+        else:
+            return txt_url, project
+
+    raise ValueError('Could not get project name')
+
+def scrape_data(urls_dois, file):
 
     driver = get_driver()
 
     for url, doi in urls_dois:
-        txt_url = get_txt_url(driver, url)
-        add_rows_to_csv(objects.TXT_URL_FILE, ['doi', 'url'], [[doi, txt_url]])
+        txt_url, project = get_data(driver, url)
+        add_rows_to_csv(objects.TXT_URL_FILE, ['doi', 'project','pad-txt-url'], [[doi, project, txt_url]])
 
     return True
 

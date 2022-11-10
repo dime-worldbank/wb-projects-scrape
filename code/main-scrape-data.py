@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import objects
 import utils
 
@@ -6,8 +7,12 @@ def main():
 
     df_total = pd.read_csv(objects.DOC_DF)
 
-    df_progress = pd.read_csv(objects.TXT_URL_FILE)
-    completed = list(df_progress['doi'])
+    if os.path.exists(objects.TXT_URL_FILE):
+        df_progress = pd.read_csv(objects.TXT_URL_FILE)
+        completed = list(df_progress['doi'])
+    else:
+        completed = []
+    
     df = df_total[~df_total['Digital Object Identifier'].isin(completed)]
     df = df.sample(frac=1)
     print('{}% cases already completed'.format(round(len(completed)/len(df_total)*100, 1)))
@@ -17,7 +22,7 @@ def main():
     dois = list(df['Digital Object Identifier'])
     urls_dois = list(zip(urls, dois))
 
-    utils.get_txt_urls(urls_dois, objects.TXT_URL_FILE)
+    utils.scrape_data(urls_dois, objects.TXT_URL_FILE)
 
     return True
 
