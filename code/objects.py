@@ -19,3 +19,7 @@ SEE_MORE_XPATH = '//*[@id="docdetail"]/div[3]/div/div/div[1]/div[1]/div/div[2]/d
 DOC_DIR = '../data/raw'
 DOC_URL_PREFIX = 'https://documents.worldbank.org/en/publication/documents-reports/documentdetail/'
 DOC_DF = '../data/intermediate/PADs.csv'
+
+# Data wrangling
+PROJECTS_LIST = '../data/intermediate/projects.csv'
+PAD_CONTENT = '../data/intermediate/PADs_content.csv'
